@@ -245,7 +245,7 @@ func TestUnmarshal(t *testing.T) {
 			0x00, 0x00, 0x00, 0x00,
 		},
 		&TDigest{
-			centroids:   make([]*centroid, 0),
+			centroids:   make([]centroid, 0),
 			compression: 100,
 			countTotal:  0,
 		},
@@ -260,8 +260,8 @@ func TestUnmarshal(t *testing.T) {
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F,
 		},
 		&TDigest{
-			centroids: []*centroid{
-				&centroid{
+			centroids: []centroid{
+				centroid{
 					count: 1,
 					mean:  1,
 				},
@@ -282,12 +282,12 @@ func TestUnmarshal(t *testing.T) {
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40,
 		},
 		&TDigest{
-			centroids: []*centroid{
-				&centroid{
+			centroids: []centroid{
+				centroid{
 					count: 1,
 					mean:  1,
 				},
-				&centroid{
+				centroid{
 					count: 1,
 					mean:  2,
 				},

@@ -19,7 +19,7 @@ func (c *centroid) String() string {
 // A TDigest is an efficient data structure for computing streaming approximate
 // quantiles of a dataset.
 type TDigest struct {
-	centroids   []*centroid
+	centroids   []centroid
 	compression float64
 	countTotal  int64
 }
@@ -42,10 +42,28 @@ func New() *TDigest {
 // data sets (1 millionish datapoints).
 func NewWithCompression(compression float64) *TDigest {
 	return &TDigest{
-		centroids:   make([]*centroid, 0),
+		centroids:   make([]centroid, 0),
 		compression: compression,
 		countTotal:  0,
 	}
+}
+
+// Size returns the amount of memory held by d, not including the memory
+// used for the d value itself.
+//
+// To only compute the total amount of memory used by d use this formula
+//
+//		innerSize := d.Size() + int(unsafe.Sizeof(*d))
+//
+func (d *TDigest) Size() int {
+	// To avoid importing the unsafe package for unsafe.Sizeof we just
+	// declare the sizes of each data type used in TDigest.
+	const (
+		sizeofFloat64  = 8
+		sizeofInt64    = 8
+		sizeofCentroid = sizeofFloat64 + sizeofInt64
+	)
+	return sizeofCentroid * len(d.centroids)
 }
 
 // Find the indexes of centroids which have the minimum distance to the
@@ -59,7 +77,8 @@ func (d *TDigest) nearest(val float64) []int {
 		delta       float64
 		result      []int = make([]int, 0)
 	)
-	for i, c := range d.centroids {
+	for i := range d.centroids {
+		c := &d.centroids[i]
 		thisDist = val - c.mean
 		if thisDist < 0 {
 			thisDist *= -1
@@ -217,9 +236,9 @@ func (d *TDigest) addNewCentroid(mean float64, weight int64) {
 		}
 	}
 
-	d.centroids = append(d.centroids, nil)
+	d.centroids = append(d.centroids, centroid{})
 	copy(d.centroids[idx+1:], d.centroids[idx:])
-	d.centroids[idx] = &centroid{mean, weight}
+	d.centroids[idx] = centroid{mean, weight}
 }
 
 // Add will add a value to the TDigest, updating all quantiles. A
@@ -243,7 +262,7 @@ func (d *TDigest) add(val float64, weight int64) {
 		return
 	}
 
-	c := d.centroids[idx]
+	c := &d.centroids[idx]
 
 	limit := d.weightLimit(idx)
 	// how much weight will we be adding?
@@ -343,7 +362,7 @@ func (d *TDigest) MergeInto(other *TDigest) {
 	// random order.
 	addOrder := rand.Perm(len(d.centroids))
 	for _, idx := range addOrder {
-		c := d.centroids[idx]
+		c := &d.centroids[idx]
 		// gradually write up the volume written so that the tdigest doesnt overload early
 		added := int64(0)
 		for i := int64(1); i < 10; i++ {

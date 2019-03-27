@@ -64,9 +64,9 @@ func unmarshalBinary(d *TDigest, p []byte) error {
 	if n > 1<<20 {
 		return fmt.Errorf("invalid n, cannot be greater than 2^20: %v", n)
 	}
-	d.centroids = make([]*centroid, int(n))
+	d.centroids = make([]centroid, int(n))
 	for i := 0; i < int(n); i++ {
-		c := new(centroid)
+		c := centroid{}
 		r.readValue(&c.count)
 		r.readValue(&c.mean)
 		if r.err != nil {

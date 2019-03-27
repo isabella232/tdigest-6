@@ -10,19 +10,19 @@ import (
 
 func TestFindNearest(t *testing.T) {
 	type testcase struct {
-		centroids []*centroid
+		centroids []centroid
 		val       float64
 		want      []int
 	}
 
 	testcases := []testcase{
-		{[]*centroid{{0, 1}, {1, 1}, {2, 1}}, -1, []int{0}},
-		{[]*centroid{{0, 1}, {1, 1}, {2, 1}}, 0, []int{0}},
-		{[]*centroid{{0, 1}, {1, 1}, {2, 1}}, 1, []int{1}},
-		{[]*centroid{{0, 1}, {1, 1}, {2, 1}}, 2, []int{2}},
-		{[]*centroid{{0, 1}, {1, 1}, {2, 1}}, 3, []int{2}},
-		{[]*centroid{{0, 1}, {2, 1}}, 1, []int{0, 1}},
-		{[]*centroid{}, 1, []int{}},
+		{[]centroid{{0, 1}, {1, 1}, {2, 1}}, -1, []int{0}},
+		{[]centroid{{0, 1}, {1, 1}, {2, 1}}, 0, []int{0}},
+		{[]centroid{{0, 1}, {1, 1}, {2, 1}}, 1, []int{1}},
+		{[]centroid{{0, 1}, {1, 1}, {2, 1}}, 2, []int{2}},
+		{[]centroid{{0, 1}, {1, 1}, {2, 1}}, 3, []int{2}},
+		{[]centroid{{0, 1}, {2, 1}}, 1, []int{0, 1}},
+		{[]centroid{}, 1, []int{}},
 	}
 
 	for i, tc := range testcases {
@@ -53,7 +53,7 @@ func BenchmarkFindNearest(b *testing.B) {
 }
 
 func TestFindAddTarget(t *testing.T) {
-	testcase := func(in []*centroid, val float64, want int) func(*testing.T) {
+	testcase := func(in []centroid, val float64, want int) func(*testing.T) {
 		return func(t *testing.T) {
 			d := TDigest{centroids: in, compression: 1}
 			for _, c := range in {
@@ -67,38 +67,38 @@ func TestFindAddTarget(t *testing.T) {
 	}
 	t.Run("empty digest", testcase(nil, 1, -1))
 	t.Run("exactly one with room", testcase(
-		[]*centroid{{0.0, 1}, {1.0, 1}, {2.0, 1}},
+		[]centroid{{0.0, 1}, {1.0, 1}, {2.0, 1}},
 		1, 1))
 	t.Run("exactly one without room", testcase(
-		[]*centroid{{0.0, 1}, {1.0, 3}, {2.0, 1}},
+		[]centroid{{0.0, 1}, {1.0, 3}, {2.0, 1}},
 		1, -1))
 	t.Run("multiple candidates", func(t *testing.T) {
 		t.Run("all lesser", func(t *testing.T) {
 			t.Run("with room", testcase(
-				[]*centroid{{0.0, 1}, {1.0, 1}, {1.0, 3}, {2.0, 1}},
+				[]centroid{{0.0, 1}, {1.0, 1}, {1.0, 3}, {2.0, 1}},
 				1.1, 2))
 			t.Run("without room", testcase(
-				[]*centroid{{0.0, 1}, {1.0, 1}, {1.0, 4}, {2.0, 1}},
+				[]centroid{{0.0, 1}, {1.0, 1}, {1.0, 4}, {2.0, 1}},
 				1.1, -1))
 		})
 		t.Run("all greater", func(t *testing.T) {
 			t.Run("with room", testcase(
-				[]*centroid{{0.0, 1}, {1.0, 1}, {1.0, 3}, {2.0, 1}},
+				[]centroid{{0.0, 1}, {1.0, 1}, {1.0, 3}, {2.0, 1}},
 				0.9, 1))
 			t.Run("without room", testcase(
-				[]*centroid{{0.0, 1}, {1.0, 3}, {1.0, 4}, {2.0, 1}},
+				[]centroid{{0.0, 1}, {1.0, 3}, {1.0, 4}, {2.0, 1}},
 				0.9, -1))
 		})
 		t.Run("all equal", func(t *testing.T) {
 			t.Run("with room in none", testcase(
-				[]*centroid{{0.0, 1}, {1.0, 3}, {1.0, 3}, {2.0, 1}},
+				[]centroid{{0.0, 1}, {1.0, 3}, {1.0, 3}, {2.0, 1}},
 				1.0, -1))
 			t.Run("with room in one", testcase(
-				[]*centroid{{0.0, 1}, {1.0, 2}, {1.0, 3}, {2.0, 1}},
+				[]centroid{{0.0, 1}, {1.0, 2}, {1.0, 3}, {2.0, 1}},
 				1.0, 1))
 			t.Run("with room in multiple", func(t *testing.T) {
 				d := TDigest{
-					centroids:   []*centroid{{0.0, 1}, {1.0, 1}, {1.0, 2}, {2.0, 1}},
+					centroids:   []centroid{{0.0, 1}, {1.0, 1}, {1.0, 2}, {2.0, 1}},
 					compression: 1,
 				}
 				for _, c := range d.centroids {
@@ -112,17 +112,17 @@ func TestFindAddTarget(t *testing.T) {
 		})
 		t.Run("both greater and lesser", func(t *testing.T) {
 			t.Run("with room below", testcase(
-				[]*centroid{{0.0, 1}, {0.8, 1}, {0.8, 1}, {1.0, 6}, {1.0, 1}, {2.0, 1}},
+				[]centroid{{0.0, 1}, {0.8, 1}, {0.8, 1}, {1.0, 6}, {1.0, 1}, {2.0, 1}},
 				0.9, 2))
 			t.Run("with room above", testcase(
-				[]*centroid{{0.0, 1}, {0.8, 1}, {0.8, 6}, {1.0, 1}, {1.0, 1}, {2.0, 1}},
+				[]centroid{{0.0, 1}, {0.8, 1}, {0.8, 6}, {1.0, 1}, {1.0, 1}, {2.0, 1}},
 				0.9, 3))
 			t.Run("with no room", testcase(
-				[]*centroid{{0.0, 1}, {0.8, 1}, {0.8, 6}, {1.0, 6}, {1.0, 1}, {2.0, 1}},
+				[]centroid{{0.0, 1}, {0.8, 1}, {0.8, 6}, {1.0, 6}, {1.0, 1}, {2.0, 1}},
 				0.9, -1))
 			t.Run("with room above and below", func(t *testing.T) {
 				d := TDigest{
-					centroids: []*centroid{
+					centroids: []centroid{
 						{0.0, 1}, {0.8, 1}, {0.8, 1},
 						{1.0, 1}, {1.0, 1}, {2.0, 1}},
 					compression: 1,
@@ -190,34 +190,34 @@ func TestQuantileOrder(t *testing.T) {
 	d := &TDigest{
 		countTotal:  14182,
 		compression: 100,
-		centroids: []*centroid{
-			&centroid{0.000000, 1},
-			&centroid{0.000000, 564},
-			&centroid{0.000000, 1140},
-			&centroid{0.000000, 1713},
-			&centroid{0.000000, 2380},
-			&centroid{0.000000, 2688},
-			&centroid{0.000000, 1262},
-			&centroid{2.005758, 1563},
-			&centroid{30.499251, 1336},
-			&centroid{381.533509, 761},
-			&centroid{529.600000, 5},
-			&centroid{1065.294118, 17},
-			&centroid{2266.444444, 36},
-			&centroid{4268.809783, 368},
-			&centroid{14964.148148, 27},
-			&centroid{41024.579618, 157},
-			&centroid{124311.192308, 52},
-			&centroid{219674.636364, 22},
-			&centroid{310172.775000, 40},
-			&centroid{412388.642857, 14},
-			&centroid{582867.000000, 16},
-			&centroid{701434.777778, 9},
-			&centroid{869363.800000, 5},
-			&centroid{968264.000000, 1},
-			&centroid{987100.666667, 3},
-			&centroid{1029895.000000, 1},
-			&centroid{1034640.000000, 1},
+		centroids: []centroid{
+			centroid{0.000000, 1},
+			centroid{0.000000, 564},
+			centroid{0.000000, 1140},
+			centroid{0.000000, 1713},
+			centroid{0.000000, 2380},
+			centroid{0.000000, 2688},
+			centroid{0.000000, 1262},
+			centroid{2.005758, 1563},
+			centroid{30.499251, 1336},
+			centroid{381.533509, 761},
+			centroid{529.600000, 5},
+			centroid{1065.294118, 17},
+			centroid{2266.444444, 36},
+			centroid{4268.809783, 368},
+			centroid{14964.148148, 27},
+			centroid{41024.579618, 157},
+			centroid{124311.192308, 52},
+			centroid{219674.636364, 22},
+			centroid{310172.775000, 40},
+			centroid{412388.642857, 14},
+			centroid{582867.000000, 16},
+			centroid{701434.777778, 9},
+			centroid{869363.800000, 5},
+			centroid{968264.000000, 1},
+			centroid{987100.666667, 3},
+			centroid{1029895.000000, 1},
+			centroid{1034640.000000, 1},
 		},
 	}
 	d.Add(1.0, 1)
@@ -260,18 +260,18 @@ func TestAddValue(t *testing.T) {
 	type testcase struct {
 		value  float64
 		weight int
-		want   []*centroid
+		want   []centroid
 	}
 
 	testcases := []testcase{
-		{1.0, 1, []*centroid{{1, 1}}},
-		{0.0, 1, []*centroid{{0, 1}, {1, 1}}},
-		{2.0, 1, []*centroid{{0, 1}, {1, 1}, {2, 1}}},
-		{3.0, 1, []*centroid{{0, 1}, {1, 1}, {2.5, 2}}},
-		{4.0, 1, []*centroid{{0, 1}, {1, 1}, {2.5, 2}, {4, 1}}},
-		{math.NaN(), 1, []*centroid{{0, 1}, {1, 1}, {2.5, 2}, {4, 1}}},
-		{math.Inf(-1), 1, []*centroid{{0, 1}, {1, 1}, {2.5, 2}, {4, 1}}},
-		{math.Inf(+1), 1, []*centroid{{0, 1}, {1, 1}, {2.5, 2}, {4, 1}}},
+		{1.0, 1, []centroid{{1, 1}}},
+		{0.0, 1, []centroid{{0, 1}, {1, 1}}},
+		{2.0, 1, []centroid{{0, 1}, {1, 1}, {2, 1}}},
+		{3.0, 1, []centroid{{0, 1}, {1, 1}, {2.5, 2}}},
+		{4.0, 1, []centroid{{0, 1}, {1, 1}, {2.5, 2}, {4, 1}}},
+		{math.NaN(), 1, []centroid{{0, 1}, {1, 1}, {2.5, 2}, {4, 1}}},
+		{math.Inf(-1), 1, []centroid{{0, 1}, {1, 1}, {2.5, 2}, {4, 1}}},
+		{math.Inf(+1), 1, []centroid{{0, 1}, {1, 1}, {2.5, 2}, {4, 1}}},
 	}
 
 	d := NewWithCompression(1)
@@ -286,7 +286,7 @@ func TestAddValue(t *testing.T) {
 func TestQuantileValue(t *testing.T) {
 	d := NewWithCompression(1)
 	d.countTotal = 8
-	d.centroids = []*centroid{{0.5, 3}, {1, 1}, {2, 2}, {3, 1}, {8, 1}}
+	d.centroids = []centroid{{0.5, 3}, {1, 1}, {2, 2}, {3, 1}, {8, 1}}
 
 	type testcase struct {
 		q    float64
@@ -341,9 +341,9 @@ func simpleTDigest(n int) *TDigest {
 }
 
 func tdFromMeans(means []float64) *TDigest {
-	centroids := make([]*centroid, len(means))
+	centroids := make([]centroid, len(means))
 	for i, m := range means {
-		centroids[i] = &centroid{m, 1}
+		centroids[i] = centroid{m, 1}
 	}
 	d := NewWithCompression(1.0)
 	d.centroids = centroids
@@ -352,10 +352,10 @@ func tdFromMeans(means []float64) *TDigest {
 }
 
 func tdFromWeights(weights []int64) *TDigest {
-	centroids := make([]*centroid, len(weights))
+	centroids := make([]centroid, len(weights))
 	countTotal := int64(0)
 	for i, w := range weights {
-		centroids[i] = &centroid{float64(i), w}
+		centroids[i] = centroid{float64(i), w}
 		countTotal += w
 	}
 	d := NewWithCompression(1.0)
