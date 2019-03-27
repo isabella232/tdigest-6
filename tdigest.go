@@ -24,10 +24,16 @@ type TDigest struct {
 	countTotal  int64
 }
 
+const (
+	// DefaultCompression is a constant for the default compression
+	// level used by New and Make.
+	DefaultCompression = 100
+)
+
 // New produces a new TDigest using the default compression level of
 // 100.
 func New() *TDigest {
-	return NewWithCompression(100)
+	return NewWithCompression(DefaultCompression)
 }
 
 // NewWithCompression produces a new TDigest with a specific
@@ -42,6 +48,21 @@ func New() *TDigest {
 // data sets (1 millionish datapoints).
 func NewWithCompression(compression float64) *TDigest {
 	return &TDigest{
+		centroids:   make([]centroid, 0),
+		compression: compression,
+		countTotal:  0,
+	}
+}
+
+// Make is like New but returns instead of a pointer.
+func Make() TDigest {
+	return MakeWithCompression(DefaultCompression)
+}
+
+// MakeWithCompression is like NewWithCompression but returns a value
+// instead of a pointer.
+func MakeWithCompression(compression float64) TDigest {
+	return TDigest{
 		centroids:   make([]centroid, 0),
 		compression: compression,
 		countTotal:  0,
