@@ -84,7 +84,16 @@ func (d *TDigest) Size() int {
 		sizeofInt64    = 8
 		sizeofCentroid = sizeofFloat64 + sizeofInt64
 	)
-	return sizeofCentroid * len(d.centroids)
+	return sizeofCentroid * cap(d.centroids)
+}
+
+// Reset resets d to its initial state.
+//
+// Memory held by the d is not released to avoid having to reallocate
+// the internal values.
+func (d *TDigest) Reset() {
+	d.centroids = d.centroids[:0]
+	d.countTotal = 0
 }
 
 // Find the indexes of centroids which have the minimum distance to the
